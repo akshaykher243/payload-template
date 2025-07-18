@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000; // Use port from .env or default to 3000
+const PORT = process.env.PORT || 3001; // Use port 3001 for PayloadCMS
 
 // Redirect all traffic to the admin panel
 // If you are using a decoupled frontend, you might remove or modify this
@@ -18,12 +18,7 @@ app.get('/', (req, res) => {
 const start = async () => {
   // Initialize Payload CMS
   await payload.init({
-    secret: process.env.PAYLOAD_SECRET ?? '', // Your Payload secret key
-    mongoURL: process.env.DATABASE_URI ?? '', // Your MongoDB connection string
-    express: app, // Pass the Express app instance to Payload
-    onInit: async () => {
-      payload.logger.info(`Payload Admin URL: ${payload.get == null ? 'not available' : payload.getAdminURL()}`); // Use 'payload.get == null ? 'not available' : payload.getAdminURL()' to avoid potential errors
-    },
+    config: (await import('./payload.config.js')).default,
   });
 
   // Add your custom Express routes here if needed
