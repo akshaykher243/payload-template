@@ -13,11 +13,16 @@ const getR2Client = () => {
   })
 }
 
+interface RouteContext {
+  params: Promise<{ filename: string }>
+}
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { filename: string } }
+  context: RouteContext
 ) {
   try {
+    const params = await context.params
     const { filename } = params
     const bucket = process.env.R2_BUCKET_NAME!
     
