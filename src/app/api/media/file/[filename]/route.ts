@@ -1,6 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as AWS from '@aws-sdk/client-s3'
 
+// Function to get proper MIME type from filename
+const getMimeTypeFromFilename = (filename: string): string => {
+  const ext = filename.toLowerCase().split('.').pop() || ''
+  
+  const mimeTypes: Record<string, string> = {
+    // Images
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'gif': 'image/gif',
+    'webp': 'image/webp',
+    'svg': 'image/svg+xml',
+    'bmp': 'image/bmp',
+    'ico': 'image/x-icon',
+    'tiff': 'image/tiff',
+    'tif': 'image/tiff',
+    
+    // Videos
+    'mp4': 'video/mp4',
+    'webm': 'video/webm',
+    'ogv': 'video/ogg',
+    'avi': 'video/x-msvideo',
+    'mov': 'video/quicktime',
+    'wmv': 'video/x-ms-wmv',
+    'flv': 'video/x-flv',
+    'mkv': 'video/x-matroska',
+  }
+  
+  return mimeTypes[ext] || 'application/octet-stream'
+}
+
 // Initialize R2 client
 const getR2Client = () => {
   return new AWS.S3({
@@ -85,11 +116,18 @@ export async function GET(
 
     console.log(`[API Route] Successfully served file: ${filename}, size: ${buffer.length}, key: ${usedKey}`)
 
+    // Ensure proper MIME type is set
+    let contentType = object.ContentType
+    if (!contentType || contentType === 'text/plain' || contentType === 'text/plain;charset=UTF-8') {
+      contentType = getMimeTypeFromFilename(filename)
+      console.log(`[API Route] Correcting Content-Type for ${filename}: ${object.ContentType} -> ${contentType}`)
+    }
+
     // Return the file with proper headers
     return new NextResponse(buffer, {
       status: 200,
       headers: {
-        'Content-Type': object.ContentType,
+        'Content-Type': contentType,
         'Content-Length': String(object.ContentLength || buffer.length),
         'Cache-Control': 'public, max-age=31536000, immutable',
         'ETag': object.ETag || `"${Date.now()}"`,
