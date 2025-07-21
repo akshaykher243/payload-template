@@ -58,9 +58,11 @@ export const getHandler = ({
   return async (req, { headers: incomingHeaders, params: { clientUploadContext, filename } }) => {
     let object: AWS.GetObjectOutput | undefined = undefined
     try {
+      console.log(`[R2 StaticHandler] Serving file: ${filename}`)
       const prefix = await getFilePrefix({ clientUploadContext, collection, filename, req })
 
       const key = path.posix.join(prefix, filename)
+      console.log(`[R2 StaticHandler] R2 key: ${key}`)
 
       if (signedDownloads && !clientUploadContext) {
         let useSignedURL = true
@@ -82,12 +84,14 @@ export const getHandler = ({
         }
       }
 
+      console.log(`[R2 StaticHandler] Fetching from bucket: ${bucket}, key: ${key}`)
       object = await getStorageClient().getObject({
         Bucket: bucket,
         Key: key,
       })
 
       if (!object.Body) {
+        console.log(`[R2 StaticHandler] File not found: ${key}`)
         return new Response(null, { status: 404, statusText: 'Not Found' })
       }
 
@@ -130,6 +134,7 @@ export const getHandler = ({
       }
 
       const bodyBuffer = await streamToBuffer(object.Body)
+      console.log(`[R2 StaticHandler] Successfully served file: ${filename}, size: ${bodyBuffer.length}`)
 
       return new Response(bodyBuffer, {
         headers,
@@ -137,6 +142,7 @@ export const getHandler = ({
       })
     } catch (err: unknown) {
       destroyStream(object)
+      console.error(`[R2 StaticHandler] Error serving file ${filename}:`, err)
       req.payload.logger.error({ err, msg: 'Error in R2 static handler' })
       return new Response('Internal Server Error', { status: 500 })
     }
