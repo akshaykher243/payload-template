@@ -58,8 +58,8 @@ export default buildConfig({
         region: process.env.R2_REGION || 'auto',
         endpoint: process.env.R2_ENDPOINT || '',
       },
-      // Enable client uploads for better performance (optional)
-      clientUploads: process.env.NODE_ENV === 'production',
+      // Disable client uploads to ensure server-side image processing
+      clientUploads: false,
       // Enable public read access
       acl: 'public-read',
     }),

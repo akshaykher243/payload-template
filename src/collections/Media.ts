@@ -96,20 +96,65 @@ export const Media: CollectionConfig = {
     beforeChange: [
       populateAlt,
       async ({ data, req }: any) => {
+        console.log(`[Media beforeChange] Processing upload for: ${data.filename || req.file?.name}`)
+        console.log(`[Media beforeChange] Request file:`, req.file ? {
+          name: req.file.name,
+          mimeType: req.file.mimeType,
+          size: req.file.size
+        } : 'No file in request')
+        console.log(`[Media beforeChange] Data object:`, {
+          filename: data.filename,
+          mimeType: data.mimeType,
+          filesize: data.filesize,
+          url: data.url,
+          sizes: data.sizes
+        })
+
+        let mimeTypeCorrected = false
+        let originalMimeType = data.mimeType
+
         // Fix MIME type in the file object before validation
         if (req.file && (!req.file.mimeType || req.file.mimeType === 'text/plain' || req.file.mimeType.includes('text/plain'))) {
           const correctMimeType = getMimeTypeFromFilename(req.file.name)
           console.log(`[Media beforeChange] Correcting file MIME type for ${req.file.name}: ${req.file.mimeType} -> ${correctMimeType}`)
+          originalMimeType = req.file.mimeType
           req.file.mimeType = correctMimeType
+          mimeTypeCorrected = true
         }
 
         // Also fix MIME type in data object
         if (data.filename && (!data.mimeType || data.mimeType === 'text/plain' || data.mimeType.includes('text/plain'))) {
           const correctMimeType = getMimeTypeFromFilename(data.filename)
           console.log(`[Media beforeChange] Correcting data MIME type for ${data.filename}: ${data.mimeType} -> ${correctMimeType}`)
+          if (!originalMimeType) originalMimeType = data.mimeType
           data.mimeType = correctMimeType
+          mimeTypeCorrected = true
         }
         
+        // Track the correction
+        data.originalMimeType = originalMimeType
+        data.mimeTypeCorrected = mimeTypeCorrected
+        
+        console.log(`[Media beforeChange] Final data:`, {
+          filename: data.filename,
+          mimeType: data.mimeType,
+          originalMimeType: data.originalMimeType,
+          mimeTypeCorrected: data.mimeTypeCorrected,
+          url: data.url,
+          sizes: data.sizes
+        })
+        
+        return data
+      },
+    ],
+    beforeValidate: [
+      async ({ data, req }: any) => {
+        console.log(`[Media beforeValidate] Data:`, {
+          filename: data.filename,
+          mimeType: data.mimeType,
+          url: data.url,
+          sizes: data.sizes
+        })
         return data
       },
     ],
@@ -119,6 +164,7 @@ export const Media: CollectionConfig = {
           id: doc.id,
           filename: doc.filename,
           mimeType: doc.mimeType,
+          url: doc.url,
           hasSizes: !!doc.sizes,
           sizes: doc.sizes ? Object.keys(doc.sizes) : [],
           sizesData: doc.sizes,

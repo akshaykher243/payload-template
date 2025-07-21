@@ -54,13 +54,20 @@ export const getHandleUpload = ({
   prefix = '',
 }: Args): HandleUpload => {
   return async ({ data, file }) => {
-    console.log(`[Upload Handler] Starting upload for file:`, {
+    console.log(`[Upload Handler] === Starting upload ===`)
+    console.log(`[Upload Handler] File details:`, {
       filename: file.filename,
       originalMimeType: file.mimeType,
       filesize: file.buffer?.length || 0,
       hasBuffer: !!file.buffer,
       hasTempFile: !!file.tempFilePath,
       prefix: data.prefix || prefix
+    })
+    console.log(`[Upload Handler] Data details:`, {
+      dataFilename: data.filename,
+      dataPrefix: data.prefix,
+      sizeName: data.sizeName, // This would indicate if it's a size upload
+      dataKeys: Object.keys(data)
     })
 
     const fileKey = path.posix.join(data.prefix || prefix, file.filename)
@@ -76,7 +83,13 @@ export const getHandleUpload = ({
       console.log(`[Upload Handler] Correcting MIME type for ${file.filename}: ${file.mimeType} -> ${mimeType}`)
     }
 
-    console.log(`[Upload Handler] Uploading to R2 with key: ${fileKey}, MIME: ${mimeType}`)
+    console.log(`[Upload Handler] Uploading to R2:`, {
+      bucket,
+      key: fileKey,
+      mimeType,
+      isSize: !!data.sizeName,
+      acl
+    })
 
     if (file.buffer.length > 0 && file.buffer.length < multipartThreshold) {
       await getStorageClient().putObject({
@@ -87,7 +100,7 @@ export const getHandleUpload = ({
         Key: fileKey,
       })
 
-      console.log(`[Upload Handler] Successfully uploaded ${file.filename} via putObject`)
+      console.log(`[Upload Handler] ✅ Successfully uploaded ${file.filename} via putObject (key: ${fileKey})`)
       return data
     }
 
@@ -105,7 +118,7 @@ export const getHandleUpload = ({
     })
 
     await parallelUploadR2.done()
-    console.log(`[Upload Handler] Successfully uploaded ${file.filename} via multipart upload`)
+    console.log(`[Upload Handler] ✅ Successfully uploaded ${file.filename} via multipart upload (key: ${fileKey})`)
 
     return data
   }
