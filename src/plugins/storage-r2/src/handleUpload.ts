@@ -19,31 +19,31 @@ const multipartThreshold = 1024 * 1024 * 50 // 50MB
 // Function to get proper MIME type from filename
 const getMimeTypeFromFilename = (filename: string): string => {
   const ext = filename.toLowerCase().split('.').pop() || ''
-  
+
   const mimeTypes: Record<string, string> = {
     // Images
-    'jpg': 'image/jpeg',
-    'jpeg': 'image/jpeg',
-    'png': 'image/png',
-    'gif': 'image/gif',
-    'webp': 'image/webp',
-    'svg': 'image/svg+xml',
-    'bmp': 'image/bmp',
-    'ico': 'image/x-icon',
-    'tiff': 'image/tiff',
-    'tif': 'image/tiff',
-    
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    gif: 'image/gif',
+    webp: 'image/webp',
+    svg: 'image/svg+xml',
+    bmp: 'image/bmp',
+    ico: 'image/x-icon',
+    tiff: 'image/tiff',
+    tif: 'image/tiff',
+
     // Videos
-    'mp4': 'video/mp4',
-    'webm': 'video/webm',
-    'ogv': 'video/ogg',
-    'avi': 'video/x-msvideo',
-    'mov': 'video/quicktime',
-    'wmv': 'video/x-ms-wmv',
-    'flv': 'video/x-flv',
-    'mkv': 'video/x-matroska',
+    mp4: 'video/mp4',
+    webm: 'video/webm',
+    ogv: 'video/ogg',
+    avi: 'video/x-msvideo',
+    mov: 'video/quicktime',
+    wmv: 'video/x-ms-wmv',
+    flv: 'video/x-flv',
+    mkv: 'video/x-matroska',
   }
-  
+
   return mimeTypes[ext] || 'application/octet-stream'
 }
 
@@ -61,13 +61,13 @@ export const getHandleUpload = ({
       filesize: file.buffer?.length || 0,
       hasBuffer: !!file.buffer,
       hasTempFile: !!file.tempFilePath,
-      prefix: data.prefix || prefix
+      prefix: data.prefix || prefix,
     })
     console.log(`[Upload Handler] Data details:`, {
       dataFilename: data.filename,
       dataPrefix: data.prefix,
       sizeName: data.sizeName, // This would indicate if it's a size upload
-      dataKeys: Object.keys(data)
+      dataKeys: Object.keys(data),
     })
 
     const fileKey = path.posix.join(data.prefix || prefix, file.filename)
@@ -80,7 +80,9 @@ export const getHandleUpload = ({
     let mimeType = file.mimeType
     if (!mimeType || mimeType === 'text/plain' || mimeType === 'text/plain;charset=UTF-8') {
       mimeType = getMimeTypeFromFilename(file.filename)
-      console.log(`[Upload Handler] Correcting MIME type for ${file.filename}: ${file.mimeType} -> ${mimeType}`)
+      console.log(
+        `[Upload Handler] Correcting MIME type for ${file.filename}: ${file.mimeType} -> ${mimeType}`,
+      )
     }
 
     console.log(`[Upload Handler] Uploading to R2:`, {
@@ -88,7 +90,7 @@ export const getHandleUpload = ({
       key: fileKey,
       mimeType,
       isSize: !!data.sizeName,
-      acl
+      acl,
     })
 
     if (file.buffer.length > 0 && file.buffer.length < multipartThreshold) {
@@ -100,7 +102,9 @@ export const getHandleUpload = ({
         Key: fileKey,
       })
 
-      console.log(`[Upload Handler] ✅ Successfully uploaded ${file.filename} via putObject (key: ${fileKey})`)
+      console.log(
+        `[Upload Handler] ✅ Successfully uploaded ${file.filename} via putObject (key: ${fileKey})`,
+      )
       return data
     }
 
@@ -118,7 +122,9 @@ export const getHandleUpload = ({
     })
 
     await parallelUploadR2.done()
-    console.log(`[Upload Handler] ✅ Successfully uploaded ${file.filename} via multipart upload (key: ${fileKey})`)
+    console.log(
+      `[Upload Handler] ✅ Successfully uploaded ${file.filename} via multipart upload (key: ${fileKey})`,
+    )
 
     return data
   }

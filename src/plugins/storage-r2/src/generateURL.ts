@@ -15,12 +15,12 @@ export const getGenerateURL = ({ bucket, config }: Args): GenerateURL => {
       filename,
       prefix,
       bucket,
-      nodeEnv: process.env.NODE_ENV
+      nodeEnv: process.env.NODE_ENV,
     })
 
     // For production deployment, we need to serve files through our static handler
     // This ensures proper access control and CORS handling
-    
+
     // In production, route through our API endpoint
     if (process.env.NODE_ENV === 'production') {
       const baseUrl = process.env.NEXT_PUBLIC_PAYLOAD_URL || 'https://payload-template.onrender.com'
@@ -28,10 +28,10 @@ export const getGenerateURL = ({ bucket, config }: Args): GenerateURL => {
       console.log(`[Generate URL] Production URL generated: ${generatedUrl}`)
       return generatedUrl
     }
-    
+
     // For development, try to use direct R2 URLs if available
     const endpoint = config.endpoint
-    
+
     if (typeof endpoint === 'string') {
       // Extract account ID from endpoint for public domain
       const accountMatch = endpoint.match(/https:\/\/([^.]+)\.r2\.cloudflarestorage\.com/)
