@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { MEDIA_TYPES } from '../contants/media'
+
 export const Media: CollectionConfig = {
   slug: 'media',
   access: {
@@ -30,6 +30,6 @@ export const Media: CollectionConfig = {
         position: 'centre',
       },
     ],
-    mimeTypes: MEDIA_TYPES.all,
+    mimeTypes: ['image/*', 'video/*'],
   },
 }
