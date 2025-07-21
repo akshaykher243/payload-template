@@ -1,0 +1,25 @@
+{
+  "name": "@local/storage-r2",
+  "version": "1.0.0",
+  "description": "Cloudflare R2 storage adapter for PayloadCMS",
+  "main": "src/index.ts",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client/index.ts"
+  },
+  "keywords": [
+    "payloadcms",
+    "cloudflare",
+    "r2",
+    "storage",
+    "plugin"
+  ],
+  "peerDependencies": {
+    "@aws-sdk/client-s3": "^3.0.0",
+    "@aws-sdk/lib-storage": "^3.0.0",
+    "@aws-sdk/s3-request-presigner": "^3.0.0",
+    "@payloadcms/plugin-cloud-storage": "^3.0.0",
+    "payload": "^3.0.0"
+  }
+}

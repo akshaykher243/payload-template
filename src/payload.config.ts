@@ -10,6 +10,7 @@ import sharp from 'sharp'
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
+import { r2Storage } from './plugins/storage-r2/src'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -43,6 +44,24 @@ export default buildConfig({
   sharp,
   plugins: [
     payloadCloudPlugin(),
-    // storage-adapter-placeholder
+    // R2 Storage Plugin
+    r2Storage({
+      collections: {
+        media: true, // Enable R2 storage for media collection
+      },
+      bucket: process.env.R2_BUCKET_NAME || '',
+      config: {
+        credentials: {
+          accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
+          secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+        },
+        region: process.env.R2_REGION || 'auto',
+        endpoint: process.env.R2_ENDPOINT || '',
+      },
+      // Enable client uploads for better performance (optional)
+      clientUploads: process.env.NODE_ENV === 'production',
+      // Enable public read access
+      acl: 'public-read',
+    }),
   ],
 })
