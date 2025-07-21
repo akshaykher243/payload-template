@@ -10,13 +10,23 @@ interface Args {
 
 export const getGenerateURL = ({ bucket, config }: Args): GenerateURL => {
   return ({ collection, filename, prefix }) => {
+    console.log(`[Generate URL] Called with:`, {
+      collection: collection?.slug || 'unknown',
+      filename,
+      prefix,
+      bucket,
+      nodeEnv: process.env.NODE_ENV
+    })
+
     // For production deployment, we need to serve files through our static handler
     // This ensures proper access control and CORS handling
     
     // In production, route through our API endpoint
     if (process.env.NODE_ENV === 'production') {
       const baseUrl = process.env.NEXT_PUBLIC_PAYLOAD_URL || 'https://payload-template.onrender.com'
-      return `${baseUrl}/api/media/file/${filename}`
+      const generatedUrl = `${baseUrl}/api/media/file/${filename}`
+      console.log(`[Generate URL] Production URL generated: ${generatedUrl}`)
+      return generatedUrl
     }
     
     // For development, try to use direct R2 URLs if available
@@ -28,11 +38,15 @@ export const getGenerateURL = ({ bucket, config }: Args): GenerateURL => {
       if (accountMatch) {
         const accountId = accountMatch[1]
         // Use R2 public domain format: https://pub-{hash}.r2.dev/{bucket}/{file}
-        return `https://pub-${accountId}.r2.dev/${bucket}/${path.posix.join(prefix || '', filename)}`
+        const devUrl = `https://pub-${accountId}.r2.dev/${bucket}/${path.posix.join(prefix || '', filename)}`
+        console.log(`[Generate URL] Development URL generated: ${devUrl}`)
+        return devUrl
       }
     }
 
     // Fallback to serving through our API
-    return `/api/media/file/${filename}`
+    const fallbackUrl = `/api/media/file/${filename}`
+    console.log(`[Generate URL] Fallback URL generated: ${fallbackUrl}`)
+    return fallbackUrl
   }
 }

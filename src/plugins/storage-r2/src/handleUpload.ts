@@ -54,6 +54,15 @@ export const getHandleUpload = ({
   prefix = '',
 }: Args): HandleUpload => {
   return async ({ data, file }) => {
+    console.log(`[Upload Handler] Starting upload for file:`, {
+      filename: file.filename,
+      originalMimeType: file.mimeType,
+      filesize: file.buffer?.length || 0,
+      hasBuffer: !!file.buffer,
+      hasTempFile: !!file.tempFilePath,
+      prefix: data.prefix || prefix
+    })
+
     const fileKey = path.posix.join(data.prefix || prefix, file.filename)
 
     const fileBufferOrStream = file.tempFilePath
@@ -67,6 +76,8 @@ export const getHandleUpload = ({
       console.log(`[Upload Handler] Correcting MIME type for ${file.filename}: ${file.mimeType} -> ${mimeType}`)
     }
 
+    console.log(`[Upload Handler] Uploading to R2 with key: ${fileKey}, MIME: ${mimeType}`)
+
     if (file.buffer.length > 0 && file.buffer.length < multipartThreshold) {
       await getStorageClient().putObject({
         ACL: acl,
@@ -76,6 +87,7 @@ export const getHandleUpload = ({
         Key: fileKey,
       })
 
+      console.log(`[Upload Handler] Successfully uploaded ${file.filename} via putObject`)
       return data
     }
 
@@ -93,6 +105,7 @@ export const getHandleUpload = ({
     })
 
     await parallelUploadR2.done()
+    console.log(`[Upload Handler] Successfully uploaded ${file.filename} via multipart upload`)
 
     return data
   }
