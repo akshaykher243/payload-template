@@ -16,14 +16,6 @@ export const Media: CollectionConfig = {
     },
   ],
   upload: {
-    mimeTypes: [
-      'image/*',
-      'video/*',
-      'audio/*',
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    ],
     imageSizes: [
       {
         name: 'thumbnail',
