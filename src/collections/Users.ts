@@ -5,6 +5,12 @@ export const Users: CollectionConfig = {
   admin: {
     useAsTitle: 'email',
   },
+  access: {
+    read: () => true, // Allow public read access
+    create: () => true, // Allow public creation access
+    update: () => true, // Allow public update access
+    delete: () => false, // Disable public deletion access
+  },
   auth: true,
   fields: [
     // Email added by default
