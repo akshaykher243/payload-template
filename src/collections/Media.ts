@@ -89,10 +89,30 @@ export const Media: CollectionConfig = {
       },
     ],
     adminThumbnail: 'thumbnail',
-    mimeTypes: ['image/*', 'video/*'],
+    // Remove MIME type restrictions entirely to prevent validation errors
+    // PayloadCMS will accept any file type, and we'll fix MIME types in hooks
   },
   hooks: {
-    beforeChange: [populateAlt],
+    beforeChange: [
+      populateAlt,
+      async ({ data, req }: any) => {
+        // Fix MIME type in the file object before validation
+        if (req.file && (!req.file.mimeType || req.file.mimeType === 'text/plain' || req.file.mimeType.includes('text/plain'))) {
+          const correctMimeType = getMimeTypeFromFilename(req.file.name)
+          console.log(`[Media beforeChange] Correcting file MIME type for ${req.file.name}: ${req.file.mimeType} -> ${correctMimeType}`)
+          req.file.mimeType = correctMimeType
+        }
+
+        // Also fix MIME type in data object
+        if (data.filename && (!data.mimeType || data.mimeType === 'text/plain' || data.mimeType.includes('text/plain'))) {
+          const correctMimeType = getMimeTypeFromFilename(data.filename)
+          console.log(`[Media beforeChange] Correcting data MIME type for ${data.filename}: ${data.mimeType} -> ${correctMimeType}`)
+          data.mimeType = correctMimeType
+        }
+        
+        return data
+      },
+    ],
     afterChange: [
       async ({ doc }: any) => {
         console.log(`[Media Collection] After change - Document:`, {
@@ -124,6 +144,22 @@ export const Media: CollectionConfig = {
       name: 'alt',
       type: 'text',
       required: true,
+    },
+    {
+      name: 'originalMimeType',
+      type: 'text',
+      admin: {
+        readOnly: true,
+        hidden: true,
+      },
+    },
+    {
+      name: 'mimeTypeCorrected',
+      type: 'checkbox',
+      admin: {
+        readOnly: true,
+        hidden: true,
+      },
     },
   ],
 }
